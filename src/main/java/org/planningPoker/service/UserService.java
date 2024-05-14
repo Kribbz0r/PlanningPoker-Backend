@@ -5,7 +5,7 @@ import java.util.List;
 
 import org.bson.Document;
 
-import com.mongodb.MongoClient;
+import com.mongodb.client.MongoClient;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
@@ -28,14 +28,14 @@ public class UserService {
 
     public Response testGet() {
 
-        MongoDatabase database = mongoClient.getDatabase("planningpoker");
+        MongoDatabase database = mongoClient.getDatabase("PlanningPoker");
         MongoCollection<Document> collection = database.getCollection("User");
-        FindIterable<Document> documents = collection.find();
+        
         List<Document> userList = new ArrayList<>();
-
-        for (Document document : documents) {
+        for (Document document : collection.find()) {
             userList.add(document);
         }
+        System.out.println(userList);
 
         return Response.ok(userList).build();
     }
