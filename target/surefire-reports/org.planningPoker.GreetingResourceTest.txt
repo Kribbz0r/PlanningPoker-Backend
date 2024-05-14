@@ -1,0 +1,4 @@
+-------------------------------------------------------------------------------
+Test set: org.planningPoker.GreetingResourceTest
+-------------------------------------------------------------------------------
+Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 66.15 s -- in org.planningPoker.GreetingResourceTest
