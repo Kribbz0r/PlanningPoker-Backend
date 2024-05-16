@@ -9,7 +9,6 @@ import java.util.Set;
 import org.bson.Document;
 import org.bson.types.ObjectId;
 import org.eclipse.microprofile.jwt.Claims;
-import org.eclipse.microprofile.reactive.streams.operators.spi.Stage.Collect;
 import org.mindrot.jbcrypt.BCrypt;
 import org.planningPoker.config.AppConfig;
 import org.planningPoker.model.LoginDto;
@@ -45,7 +44,7 @@ public class SecurityService {
         this.mongoClient = mongoClient;
     }
 
-    public Response login(@Valid LoginDto loginDto) {
+    public Response login(@Valid LoginDto loginDto) throws Exception {
         System.out.println("service: " + loginDto.getEmail());
         Response userResponse = userService.findUser(loginDto.getEmail());
         Document userDocument = (Document) userResponse.getEntity();
@@ -69,45 +68,37 @@ public class SecurityService {
 
     }
 
-    private String generateJwtToken(User user) {
-        System.out.println("Banananaaaa!!");
+    private String generateJwtToken(User user) throws Exception {
         Set<String> userPermissions = getUserPermissions(user);
         PrivateKey privateKey = loadPrivateKey();
+        System.out.println(appConfig.jwtIssuer());
 
-
-        String issuer;
-        if (ProfileManager.getLaunchMode().isDevOrTest()) {
-            issuer = appConfig.jwtIssuer();
-        } else {
-            issuer = System.getenv("JWT_ISSUER");
-
-        }
+        String issuer = appConfig.jwtIssuer() != null ? appConfig.jwtIssuer() : System.getenv("JWT_ISSUER");
         
-        // return "Im a token";
-        return Jwt.issuer(issuer)
-                    .upn(user.getEmail())
-                    .groups(userPermissions)
-                    .expiresIn(86400)
-                    .claim(Claims.email_verified.name(), user.getEmail())
-                    .sign(privateKey);
+        if (privateKey == null) {
+            return "im a token";
+        } else {
+            return Jwt.issuer(issuer)
+                        .upn(user.getEmail())
+                        .groups(userPermissions)
+                        .expiresIn(86400)
+                        .claim(Claims.email_verified.name(), user.getEmail())
+                        .sign(privateKey);
+        }
 
     }
 
-    private PrivateKey loadPrivateKey() {
+    private PrivateKey loadPrivateKey() throws Exception {
         System.out.println("You are here!!");
         try {
-            // String privateKeyString;
-            // if (ProfileManager.getLaunchMode().isDevOrTest()) {
-            //     privateKeyString = appConfig.privateKey();
-            // } else {
-            //     privateKeyString = System.getenv("PRIVATE_KEY");
-    
-            // }
-            String privateKeyString = System.getenv("PRIVATE_KEY");
+            
+            String privateKeyString = appConfig.privateKey();
             System.out.println("private key!!!!: " + privateKeyString);
             privateKeyString = privateKeyString.replace("-----BEGIN PRIVATE KEY-----", "")
+                                                // .replace('"', "")
                                                 .replace("-----END PRIVATE KEY-----", "")
                                                 .replaceAll("\\s", "");
+            System.out.println("updated: " + privateKeyString);
             byte[] privateKeyByte = Base64.getDecoder().decode(privateKeyString);
             PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(privateKeyByte);
             KeyFactory keyFactory = KeyFactory.getInstance("RSA");
@@ -118,6 +109,8 @@ public class SecurityService {
             return null;
         }
     }
+
+
 
     private Set<String> getUserPermissions(final User user) {
 
