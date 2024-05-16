@@ -9,7 +9,6 @@ import java.util.Set;
 import org.bson.Document;
 import org.bson.types.ObjectId;
 import org.eclipse.microprofile.jwt.Claims;
-import org.eclipse.microprofile.reactive.streams.operators.spi.Stage.Collect;
 import org.mindrot.jbcrypt.BCrypt;
 import org.planningPoker.config.AppConfig;
 import org.planningPoker.model.LoginDto;
@@ -45,7 +44,7 @@ public class SecurityService {
         this.mongoClient = mongoClient;
     }
 
-    public Response login(@Valid LoginDto loginDto) {
+    public Response login(@Valid LoginDto loginDto) throws Exception {
         System.out.println("service: " + loginDto.getEmail());
         Response userResponse = userService.findUser(loginDto.getEmail());
         Document userDocument = (Document) userResponse.getEntity();
@@ -69,19 +68,13 @@ public class SecurityService {
 
     }
 
-    private String generateJwtToken(User user) {
+    private String generateJwtToken(User user) throws Exception {
         System.out.println("Banananaaaa!!");
         Set<String> userPermissions = getUserPermissions(user);
         PrivateKey privateKey = loadPrivateKey();
 
 
-        String issuer;
-        if (ProfileManager.getLaunchMode().isDevOrTest()) {
-            issuer = appConfig.jwtIssuer();
-        } else {
-            issuer = System.getenv("JWT_ISSUER");
-
-        }
+        String issuer = appConfig.jwtIssuer() != null ? appConfig.jwtIssuer() : System.getenv("JWT_ISSUER");
         
         // return "Im a token";
         return Jwt.issuer(issuer)
@@ -93,16 +86,10 @@ public class SecurityService {
 
     }
 
-    private PrivateKey loadPrivateKey() {
+    private PrivateKey loadPrivateKey() throws Exception {
         System.out.println("You are here!!");
         try {
-            // String privateKeyString;
-            // if (ProfileManager.getLaunchMode().isDevOrTest()) {
-            //     privateKeyString = appConfig.privateKey();
-            // } else {
-            //     privateKeyString = System.getenv("PRIVATE_KEY");
-    
-            // }
+            
             String privateKeyString = System.getenv("PRIVATE_KEY");
             System.out.println("private key!!!!: " + privateKeyString);
             privateKeyString = privateKeyString.replace("-----BEGIN PRIVATE KEY-----", "")
@@ -118,6 +105,8 @@ public class SecurityService {
             return null;
         }
     }
+
+
 
     private Set<String> getUserPermissions(final User user) {
 
