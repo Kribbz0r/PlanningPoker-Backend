@@ -1,8 +1,12 @@
 package org.planningPoker.service;
 
 import java.security.KeyFactory;
+import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
+import java.security.PublicKey;
+import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
+import java.security.spec.X509EncodedKeySpec;
 import java.util.Base64;
 import java.util.Set;
 
@@ -18,7 +22,13 @@ import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.Jws;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.MalformedJwtException;
+import io.jsonwebtoken.UnsupportedJwtException;
 import io.jsonwebtoken.lang.Collections;
+import io.jsonwebtoken.security.SignatureException;
 import io.quarkus.runtime.configuration.ProfileManager;
 import io.smallrye.jwt.build.Jwt;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -141,6 +151,51 @@ public class SecurityService {
 
     private boolean checkCredentials(String encryptedPassword, String rawPassword) {
         return BCrypt.checkpw(rawPassword, encryptedPassword);
+    }
+
+    public Jws<io.jsonwebtoken.Claims> verifyJwt(String jwtToken) throws Exception {
+
+        PublicKey publicKey = loadPublicKey();
+        System.out.println("pub key: " + publicKey);
+        String issuer = appConfig.jwtIssuer();
+        System.out.println("issuer: " + issuer);
+
+        try {
+            return Jwts.parser().requireIssuer(issuer).verifyWith(publicKey).build().parseSignedClaims(jwtToken);
+        } catch (SignatureException e) {
+            Exception exception = new Exception("JWT Signature not valid");
+            exception.initCause(e);
+            throw exception;
+        } catch (ExpiredJwtException e) {
+            Exception exception = new Exception("JWT has expired");
+            exception.initCause(e);
+            throw exception;
+        } catch (UnsupportedJwtException e) {
+            Exception exception = new Exception("JWT not supported");
+            exception.initCause(e);
+            throw exception;
+        } catch (MalformedJwtException e) {
+            Exception exception = new Exception("Invalid JWT format");
+            exception.initCause(e);
+            throw exception;
+        } catch (IllegalArgumentException e) {
+            Exception exception = new Exception("Invalid JWT");
+            exception.initCause(e);
+            throw exception;
+        }
+    }
+
+    private PublicKey loadPublicKey() throws InvalidKeySpecException, NoSuchAlgorithmException {
+
+        String publicKey = appConfig.publicKey();
+        System.out.println("key:" + publicKey);
+        publicKey = publicKey.replace("-----BEGIN PUBLIC KEY-----", "")
+                            .replace("-----END PUBLIC KEY-----", "")
+                            .replaceAll("\\s", "");
+        byte[] decodedPublicKey = Base64.getDecoder().decode(publicKey);
+        X509EncodedKeySpec spec = new X509EncodedKeySpec(decodedPublicKey);
+        KeyFactory keyFactory = KeyFactory.getInstance("RSA");
+        return keyFactory.generatePublic(spec);
     }
     
 }
