@@ -26,6 +26,7 @@ public class SecurityResource {
     @Path("/login")
     @PermitAll
     public Response login(@Valid @RequestBody final LoginDto loginDto) {
+        System.out.println("login resource: " + loginDto.getEmail());
         return securityService.login(loginDto);
     }
 
