@@ -69,20 +69,22 @@ public class SecurityService {
     }
 
     private String generateJwtToken(User user) throws Exception {
-        System.out.println("Banananaaaa!!");
         Set<String> userPermissions = getUserPermissions(user);
         PrivateKey privateKey = loadPrivateKey();
-
+        System.out.println(appConfig.jwtIssuer());
 
         String issuer = appConfig.jwtIssuer() != null ? appConfig.jwtIssuer() : System.getenv("JWT_ISSUER");
         
-        // return "Im a token";
-        return Jwt.issuer(issuer)
-                    .upn(user.getEmail())
-                    .groups(userPermissions)
-                    .expiresIn(86400)
-                    .claim(Claims.email_verified.name(), user.getEmail())
-                    .sign(privateKey);
+        if (privateKey == null) {
+            return "im a token";
+        } else {
+            return Jwt.issuer(issuer)
+                        .upn(user.getEmail())
+                        .groups(userPermissions)
+                        .expiresIn(86400)
+                        .claim(Claims.email_verified.name(), user.getEmail())
+                        .sign(privateKey);
+        }
 
     }
 
@@ -90,11 +92,13 @@ public class SecurityService {
         System.out.println("You are here!!");
         try {
             
-            String privateKeyString = System.getenv("PRIVATE_KEY");
+            String privateKeyString = appConfig.privateKey();
             System.out.println("private key!!!!: " + privateKeyString);
             privateKeyString = privateKeyString.replace("-----BEGIN PRIVATE KEY-----", "")
+                                                // .replace('"', "")
                                                 .replace("-----END PRIVATE KEY-----", "")
                                                 .replaceAll("\\s", "");
+            System.out.println("updated: " + privateKeyString);
             byte[] privateKeyByte = Base64.getDecoder().decode(privateKeyString);
             PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(privateKeyByte);
             KeyFactory keyFactory = KeyFactory.getInstance("RSA");
