@@ -8,5 +8,7 @@ public interface AppConfig {
     String privateKey();
 
     String jwtIssuer();
+
+    String publicKey();
     
 }
