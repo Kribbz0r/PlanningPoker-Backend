@@ -42,3 +42,4 @@ nb-configuration.xml
 /.quarkus/cli/plugins/
 
 privateKey.pem
+publicKey.pem
