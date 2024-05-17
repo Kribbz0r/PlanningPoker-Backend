@@ -60,13 +60,14 @@ public class SecurityService {
         Document userDocument = (Document) userResponse.getEntity();
         User user;
 
-        if(userDocument != null) {
-            user = new User(userDocument.get("_id").toString(), userDocument.get("email").toString(), userDocument.get("role").toString(), Integer.parseInt(userDocument.get("authorized").toString()), 
-                            userDocument.get("password").toString(), userDocument.get("name").toString());
+        if (userDocument != null) {
+            user = new User(userDocument.get("_id").toString(), userDocument.get("email").toString(),
+                    userDocument.get("role").toString(), Integer.parseInt(userDocument.get("authorized").toString()),
+                    userDocument.get("password").toString(), userDocument.get("name").toString());
         } else {
             return Response.status(Response.Status.UNAUTHORIZED).entity("Incorrect email or password").build();
         }
-        
+
         if (user != null && checkCredentials(user.getPassword(), loginDto.getPassword())) {
             System.out.println("creds: ");
             String newToken = generateJwtToken(user);
@@ -84,30 +85,36 @@ public class SecurityService {
         System.out.println(appConfig.jwtIssuer());
 
         String issuer = appConfig.jwtIssuer() != null ? appConfig.jwtIssuer() : System.getenv("JWT_ISSUER");
-        
+
         if (privateKey == null) {
             return "im a token";
         } else {
             return Jwt.issuer(issuer)
-                        .upn(user.getEmail())
-                        .groups(userPermissions)
-                        .expiresIn(86400)
-                        .claim(Claims.email_verified.name(), user.getEmail())
-                        .sign(privateKey);
+                    .upn(user.getEmail())
+                    .groups(userPermissions)
+                    .expiresIn(86400)
+                    .claim(Claims.email_verified.name(), user.getEmail())
+                    .sign(privateKey);
         }
 
     }
 
     private PrivateKey loadPrivateKey() throws Exception {
         System.out.println("You are here!!");
+
         try {
-            
-            String privateKeyString = appConfig.privateKey();
+            String privateKeyString;
+            if (ProfileManager.getLaunchMode().isDevOrTest()) {
+                privateKeyString = appConfig.privateKey();
+            } else {
+                privateKeyString = System.getenv("PRIVATE_KEY");
+            }
+
             System.out.println("private key!!!!: " + privateKeyString);
             privateKeyString = privateKeyString.replace("-----BEGIN PRIVATE KEY-----", "")
-                                                // .replace('"', "")
-                                                .replace("-----END PRIVATE KEY-----", "")
-                                                .replaceAll("\\s", "");
+                    // .replace('"', "")
+                    .replace("-----END PRIVATE KEY-----", "")
+                    .replaceAll("\\s", "");
             System.out.println("updated: " + privateKeyString);
             byte[] privateKeyByte = Base64.getDecoder().decode(privateKeyString);
             PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(privateKeyByte);
@@ -119,8 +126,6 @@ public class SecurityService {
             return null;
         }
     }
-
-
 
     private Set<String> getUserPermissions(final User user) {
 
@@ -139,7 +144,7 @@ public class SecurityService {
         Document roleDocument = collection.find(query).first();
         Set<String> permissions;
 
-        if(roleDocument != null) {
+        if (roleDocument != null) {
             String permissionsString = roleDocument.getString("permissions");
             permissions = Set.of(permissionsString.split(","));
         } else {
@@ -187,15 +192,22 @@ public class SecurityService {
 
     private PublicKey loadPublicKey() throws InvalidKeySpecException, NoSuchAlgorithmException {
 
-        String publicKey = appConfig.publicKey();
+        String publicKey;
+        if (ProfileManager.getLaunchMode().isDevOrTest()) {
+            publicKey = appConfig.publicKey();
+        } else {
+            publicKey = System.getenv("PUBLIC_KEY");
+
+        }
+
         System.out.println("key:" + publicKey);
         publicKey = publicKey.replace("-----BEGIN PUBLIC KEY-----", "")
-                            .replace("-----END PUBLIC KEY-----", "")
-                            .replaceAll("\\s", "");
+                .replace("-----END PUBLIC KEY-----", "")
+                .replaceAll("\\s", "");
         byte[] decodedPublicKey = Base64.getDecoder().decode(publicKey);
         X509EncodedKeySpec spec = new X509EncodedKeySpec(decodedPublicKey);
         KeyFactory keyFactory = KeyFactory.getInstance("RSA");
         return keyFactory.generatePublic(spec);
     }
-    
+
 }
