@@ -2,6 +2,7 @@ package org.planningPoker.resource;
 
 import org.planningPoker.service.UserService;
 
+import jakarta.annotation.security.PermitAll;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.GET;
@@ -26,7 +27,7 @@ public class UserResource {
     }
 
     @GET
-    @Path("/get-user") 
+    @Path("/get-user")
     public Response getUser(@HeaderParam("Authorization") String jwtToken) {
         System.out.println(jwtToken);
         return userService.getUser(jwtToken);
