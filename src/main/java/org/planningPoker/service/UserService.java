@@ -6,7 +6,6 @@ import java.util.List;
 import org.bson.Document;
 
 import com.mongodb.client.MongoClient;
-import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 
@@ -16,7 +15,6 @@ import io.quarkus.runtime.configuration.ProfileManager;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
-import jakarta.ws.rs.HeaderParam;
 import jakarta.ws.rs.core.Response;
 
 @Transactional(Transactional.TxType.SUPPORTS)

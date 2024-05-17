@@ -2,7 +2,6 @@ package org.planningPoker.resource;
 
 import org.planningPoker.service.UserService;
 
-import jakarta.annotation.security.PermitAll;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.GET;
