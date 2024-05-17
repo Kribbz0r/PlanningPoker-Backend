@@ -2,7 +2,6 @@ package org.planningPoker.resource;
 
 import org.planningPoker.service.UserService;
 
-import jakarta.annotation.security.PermitAll;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.GET;
@@ -12,7 +11,7 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 
-@Path("")
+@Path("/user")
 @Consumes(MediaType.APPLICATION_JSON)
 @Produces(MediaType.APPLICATION_JSON)
 public class UserResource {
@@ -32,5 +31,16 @@ public class UserResource {
         System.out.println(jwtToken);
         return userService.getUser(jwtToken);
     }
+   
+   
+    @GET
+    @Path("/tasks")
+    public Response getUserTasks(@HeaderParam("Authorization") String jwtToken) {
+      System.out.println("Vi är i user tasks " + jwtToken);
+
+      
+        return userService.getUserTasks(jwtToken);
+    }
+
 
 }

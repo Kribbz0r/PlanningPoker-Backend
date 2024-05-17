@@ -127,7 +127,7 @@ public class SecurityService {
         }
     }
 
-    private Set<String> getUserPermissions(final User user) {
+    public Set<String> getUserPermissions(final User user) {
 
         MongoDatabase database;
         if (ProfileManager.getLaunchMode().isDevOrTest()) {
