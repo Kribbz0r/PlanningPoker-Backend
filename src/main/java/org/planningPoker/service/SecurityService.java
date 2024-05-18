@@ -60,10 +60,12 @@ public class SecurityService {
         Document userDocument = (Document) userResponse.getEntity();
         User user;
 
-        if (userDocument != null) {
+        if (userDocument != null && userDocument.get("authorized").equals(1)) {
             user = new User(userDocument.get("_id").toString(), userDocument.get("email").toString(),
                     userDocument.get("role").toString(), Integer.parseInt(userDocument.get("authorized").toString()),
                     userDocument.get("password").toString(), userDocument.get("name").toString());
+        } else if (userDocument.get("authorized").equals(0)){
+            return Response.status(Response.Status.UNAUTHORIZED).entity("You do not have permission to use the planner.").build();
         } else {
             return Response.status(Response.Status.UNAUTHORIZED).entity("Incorrect email or password").build();
         }
