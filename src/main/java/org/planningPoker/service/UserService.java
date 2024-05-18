@@ -90,7 +90,7 @@ public class UserService {
         }
     }
 
-    public Response getUserTasks(String jwtToken) {
+    public Response getUserTasks(String jwtToken, String projectName) {
        
         Jws<Claims> userClaim = null;
 
@@ -101,7 +101,7 @@ public class UserService {
         }
         if  (userClaim != null) {
             try { 
-                List<Document> allTasks = getTasks(userClaim);
+                List<Document> allTasks = getTasks(userClaim, projectName);
                 return Response.ok(allTasks).build();
             } catch (Exception e) {
                 return Response.status(Response.Status.NOT_FOUND).entity(e.getMessage()).build();
@@ -112,7 +112,7 @@ public class UserService {
         
     }
 
-    public List<Document> getTasks(Jws<Claims> userClaim) {
+    public List<Document> getTasks(Jws<Claims> userClaim, String projectName) {
 
         MongoDatabase database;
         if (ProfileManager.getLaunchMode().isDevOrTest()) {
@@ -121,17 +121,16 @@ public class UserService {
             database = mongoClient.getDatabase("PlanningPoker");
 
         }
-        MongoCollection<Document> collection = database.getCollection("Tasks");
+        MongoCollection<Document> collection = database.getCollection(projectName);
         FindIterable<Document> documents = collection.find();
         List<Document> taskList = new ArrayList<>();
         for (Document document : documents) {
             if (userClaim.getPayload().get("groups").toString().contains("seealltasks")) {
                 taskList.add(document);
 
-            } else if (userClaim.getPayload().get("groups").toString().contains("viewactivetasks")) {
-                if (!document.get("status").toString().equals("complete") && !document.get("status").toString().equals("needattention") ) {
+            } else if (!document.get("status").toString().equals("complete") && !document.get("status").toString().equals("needattention") && 
+                userClaim.getPayload().get("groups").toString().contains("viewactivetasks")) {
                     taskList.add(document);
-                }
             } 
         }
 
