@@ -4,6 +4,7 @@ import org.planningPoker.service.TaskService;
 
 import jakarta.inject.Inject;
 import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.GET;
 import jakarta.ws.rs.HeaderParam;
 import jakarta.ws.rs.PATCH;
 import jakarta.ws.rs.Path;
@@ -23,6 +24,12 @@ public class TaskResource {
     @Path("/new-project")
     public Response startNewProject(@HeaderParam("projectName") String projectName, @HeaderParam("Authorization") String jwtToken) {
         return taskService.startNewProject(projectName, jwtToken);
+    }
+
+    @GET
+    @Path("/get-projects")
+    public Response getProjects(@HeaderParam("Authorization") String jwtToken) {
+        return taskService.getProjects(jwtToken);
     }
     
 }

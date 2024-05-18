@@ -60,4 +60,29 @@ public class TaskService {
         }
 
     }
+
+    public Response getProjects(String jwtToken) {
+        Jws<Claims> userClaim = null;
+
+        try {
+            userClaim = securityService.verifyJwt(jwtToken);
+
+            if (userClaim != null) {
+                MongoDatabase database;
+                if (ProfileManager.getLaunchMode().isDevOrTest()) {
+                    database = mongoClient.getDatabase("PlanningPokerDev");
+                } else {
+                    database = mongoClient.getDatabase("PlanningPoker");
+                }
+                MongoCollection<Document> collection = database.getCollection("Projects");
+                Document query = new Document();
+                return Response.ok(collection.find(query).first()).build();
+                
+            } else {
+                return Response.status(Response.Status.NOT_FOUND).entity("No user found").build();
+            }
+        } catch (Exception e) {
+            return Response.status(Response.Status.UNAUTHORIZED).entity("You are not authorized to do this!").build();
+        }
+    }
 }
