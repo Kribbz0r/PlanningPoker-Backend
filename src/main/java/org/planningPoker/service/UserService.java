@@ -2,20 +2,18 @@ package org.planningPoker.service;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 import org.bson.Document;
-import org.planningPoker.model.User;
 
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.result.UpdateResult;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
 import io.quarkus.runtime.configuration.ProfileManager;
-import io.vertx.codegen.doc.Doc;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
@@ -42,7 +40,6 @@ public class UserService {
             database = mongoClient.getDatabase("PlanningPokerDev");
         } else {
             database = mongoClient.getDatabase("PlanningPoker");
-
         }
         MongoCollection<Document> collection = database.getCollection("Users");
         
@@ -50,8 +47,6 @@ public class UserService {
         for (Document document : collection.find()) {
             userList.add(document);
         }
-        System.out.println(userList);
-
         return Response.ok(userList).build();
     }
 
@@ -79,11 +74,9 @@ public class UserService {
 
         try {
             userClaim = securityService.verifyJwt(jwtToken);
-            System.out.println(userClaim);
         } catch (Exception e) {
             return Response.status(Response.Status.UNAUTHORIZED).entity("You are not authorized to do this!").build();
         }
-
         if (userClaim != null) {
 
             Response userResponse = findUser(userClaim.getPayload().get("upn").toString());
@@ -99,34 +92,21 @@ public class UserService {
 
     public Response getUserTasks(String jwtToken) {
        
-        
-
         Jws<Claims> userClaim = null;
 
         try {
             userClaim = securityService.verifyJwt(jwtToken);
-            System.out.println("Jag är ett userclaim" + userClaim);
         } catch (Exception e) {
             return Response.status(Response.Status.UNAUTHORIZED).entity("You are not authorized to do this!").build();
         }
         if  (userClaim != null) {
-            
-            try { List<Document> allTasks = getTasks(userClaim);
-            
-            
-            return Response.ok(allTasks).build();
+            try { 
+                List<Document> allTasks = getTasks(userClaim);
+                return Response.ok(allTasks).build();
             } catch (Exception e) {
                 return Response.status(Response.Status.NOT_FOUND).entity(e.getMessage()).build();
             }
-            //Response userResponse = findUser(userClaim.getPayload().get("upn").toString());
-            //Document userDocument = (Document) userResponse.getEntity();
-           // User user = new User(userDocument.get("_id").toString(), userDocument.get("email").toString(),
-                    //userDocument.get("role").toString(), Integer.parseInt(userDocument.get("authorized").toString()),
-                   // userDocument.get("password").toString(), userDocument.get("name").toString());
-           // Set<String> userPermission= securityService.getUserPermissions(user);
-
         } else {
-
             return Response.status(Response.Status.UNAUTHORIZED).entity("You are not authorized to do this!").build();
         }
         
@@ -143,7 +123,6 @@ public class UserService {
         }
         MongoCollection<Document> collection = database.getCollection("Tasks");
         FindIterable<Document> documents = collection.find();
-        System.out.println(userClaim.getPayload().get("groups").toString());
         List<Document> taskList = new ArrayList<>();
         for (Document document : documents) {
             if (userClaim.getPayload().get("groups").toString().contains("seealltasks")) {
@@ -152,12 +131,51 @@ public class UserService {
             } else if (userClaim.getPayload().get("groups").toString().contains("viewactivetasks")) {
                 if (!document.get("status").toString().equals("complete") && !document.get("status").toString().equals("needattention") ) {
                     taskList.add(document);
-                    System.out.println(document.get("status").toString());
                 }
             } 
         }
-        System.out.println(taskList);
 
         return taskList;
     }
+
+    public Response changeUserAccess(String jwtToken, String userEmail) {
+        
+        Jws<Claims> userClaim = null;
+        try {
+            userClaim = securityService.verifyJwt(jwtToken);
+        } catch (Exception e) {
+            return Response.status(Response.Status.UNAUTHORIZED).entity("You are NOT authorized to do this!").build();
+        }
+
+        MongoDatabase database;
+        if (ProfileManager.getLaunchMode().isDevOrTest()) {
+            database = mongoClient.getDatabase("PlanningPokerDev");
+        } else {
+            database = mongoClient.getDatabase("PlanningPoker");
+        }
+        MongoCollection<Document> collection = database.getCollection("Users");
+        Document query = new Document("email", userEmail);
+        if  (userClaim.getPayload().get("groups").toString().contains("handleuser")) {
+            try { 
+                Response userResponse = findUser(userEmail);
+            Document userDocument = (Document) userResponse.getEntity();
+            int currentAuthorizedStatus = userDocument.getInteger("authorized");
+            int newAuthorizedStatus = (currentAuthorizedStatus == 1) ? 0 : 1;
+            userDocument.put("authorized", newAuthorizedStatus);
+            UpdateResult updateResult = collection.updateOne(query, new Document("$set", userDocument));
+            
+            if (updateResult.getModifiedCount() == 1) {
+                return Response.ok().entity(userEmail + (newAuthorizedStatus == 1 ? " now has access." : " no longer has access.")).build();
+            } else {
+                return Response.status(Response.Status.NOT_FOUND).entity("User document not found or unable to update.").build();
+            }
+            } catch (Exception e) {
+                return Response.status(Response.Status.NOT_FOUND).entity(e.getMessage()).build();
+            }
+        } else {
+            return Response.status(Response.Status.UNAUTHORIZED).entity("You are not authorized to do this!").build();
+        }
+
+    }
+
 }
