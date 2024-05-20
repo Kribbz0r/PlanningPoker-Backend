@@ -31,6 +31,8 @@ public class Task {
         this.disapproved = disapproved;
     }
 
+    public Task() {}
+
     public String getTaskId() {
         return taskId;
     }
