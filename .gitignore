@@ -46,3 +46,4 @@ publicKey.pem
 
 target/*
 *.jar
+!.gitignore
