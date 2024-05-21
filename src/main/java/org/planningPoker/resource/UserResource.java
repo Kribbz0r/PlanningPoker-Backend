@@ -6,6 +6,7 @@ import jakarta.inject.Inject;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.HeaderParam;
+import jakarta.ws.rs.PATCH;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
@@ -20,26 +21,27 @@ public class UserResource {
     UserService userService;
 
     @GET
-    @Path("/test")
-    public Response testGet() {
-        return userService.testGet();
+    @Path("/all-users")
+    public Response getAllUsers(@HeaderParam("Authorization") String jwtToken) {
+        return userService.getAllUsers(jwtToken);
     }
 
     @GET
     @Path("/get-user")
     public Response getUser(@HeaderParam("Authorization") String jwtToken) {
-        System.out.println(jwtToken);
         return userService.getUser(jwtToken);
     }
    
-   
     @GET
     @Path("/tasks")
-    public Response getUserTasks(@HeaderParam("Authorization") String jwtToken) {
-      System.out.println("Vi är i user tasks " + jwtToken);
+    public Response getUserTasks(@HeaderParam("Authorization") String jwtToken, @HeaderParam("projectName") String projectName) {      
+        return userService.getUserTasks(jwtToken, projectName);
+    }
 
-      
-        return userService.getUserTasks(jwtToken);
+    @PATCH
+    @Path("/change-access")
+    public Response changeUserAccess(@HeaderParam("Authorization") String jwtToken, @HeaderParam("userEmail") String userEmail) {
+        return userService.changeUserAccess(jwtToken, userEmail);
     }
 
 
