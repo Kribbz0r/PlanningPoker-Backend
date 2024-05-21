@@ -55,23 +55,22 @@ public class SecurityService {
     }
 
     public Response login(@Valid LoginDto loginDto) throws Exception {
-        System.out.println("service: " + loginDto.getEmail());
         Response userResponse = userService.findUser(loginDto.getEmail());
         Document userDocument = (Document) userResponse.getEntity();
         User user;
 
-        if (userDocument != null) {
+        if (userDocument != null && userDocument.get("authorized").equals(1)) {
             user = new User(userDocument.get("_id").toString(), userDocument.get("email").toString(),
                     userDocument.get("role").toString(), Integer.parseInt(userDocument.get("authorized").toString()),
                     userDocument.get("password").toString(), userDocument.get("name").toString());
+        } else if (userDocument.get("authorized").equals(0)){
+            return Response.status(Response.Status.UNAUTHORIZED).entity("You do not have permission to use the planner.").build();
         } else {
             return Response.status(Response.Status.UNAUTHORIZED).entity("Incorrect email or password").build();
         }
 
         if (user != null && checkCredentials(user.getPassword(), loginDto.getPassword())) {
-            System.out.println("creds: ");
             String newToken = generateJwtToken(user);
-
             return Response.ok(newToken).build();
         }
 
@@ -82,8 +81,6 @@ public class SecurityService {
     private String generateJwtToken(User user) throws Exception {
         Set<String> userPermissions = getUserPermissions(user);
         PrivateKey privateKey = loadPrivateKey();
-        System.out.println(appConfig.jwtIssuer());
-
         String issuer = appConfig.jwtIssuer() != null ? appConfig.jwtIssuer() : System.getenv("JWT_ISSUER");
 
         if (privateKey == null) {
@@ -100,7 +97,6 @@ public class SecurityService {
     }
 
     private PrivateKey loadPrivateKey() throws Exception {
-        System.out.println("You are here!!");
 
         try {
             String privateKeyString;
@@ -110,12 +106,9 @@ public class SecurityService {
                 privateKeyString = System.getenv("PRIVATE_KEY");
             }
 
-            System.out.println("private key!!!!: " + privateKeyString);
             privateKeyString = privateKeyString.replace("-----BEGIN PRIVATE KEY-----", "")
-                    // .replace('"', "")
                     .replace("-----END PRIVATE KEY-----", "")
                     .replaceAll("\\s", "");
-            System.out.println("updated: " + privateKeyString);
             byte[] privateKeyByte = Base64.getDecoder().decode(privateKeyString);
             PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(privateKeyByte);
             KeyFactory keyFactory = KeyFactory.getInstance("RSA");
@@ -161,10 +154,8 @@ public class SecurityService {
     public Jws<io.jsonwebtoken.Claims> verifyJwt(String jwtToken) throws Exception {
 
         PublicKey publicKey = loadPublicKey();
-        System.out.println("pub key: " + publicKey);
-        String issuer = appConfig.jwtIssuer();
-        System.out.println("issuer: " + issuer);
 
+        String issuer = appConfig.jwtIssuer();
         try {
             return Jwts.parser().requireIssuer(issuer).verifyWith(publicKey).build().parseSignedClaims(jwtToken);
         } catch (SignatureException e) {
@@ -200,7 +191,6 @@ public class SecurityService {
 
         }
 
-        System.out.println("key:" + publicKey);
         publicKey = publicKey.replace("-----BEGIN PUBLIC KEY-----", "")
                 .replace("-----END PUBLIC KEY-----", "")
                 .replaceAll("\\s", "");
