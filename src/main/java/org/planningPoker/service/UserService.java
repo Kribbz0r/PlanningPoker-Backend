@@ -33,21 +33,35 @@ public class UserService {
         this.mongoClient = mongoClient;
     }
 
-    public Response testGet() {
+    public Response getAllUsers(String jwtToken) {
 
-        MongoDatabase database;
-        if (ProfileManager.getLaunchMode().isDevOrTest()) {
-            database = mongoClient.getDatabase("PlanningPokerDev");
+        Jws<Claims> userClaim = null;
+
+        try {
+            userClaim = securityService.verifyJwt(jwtToken);
+        } catch (Exception e) {
+            return Response.status(Response.Status.UNAUTHORIZED).entity("You are not authorized to do this!").build();
+        }
+        if (userClaim.getPayload().get("groups").toString().contains("handleuser")) {
+            MongoDatabase database;
+            if (ProfileManager.getLaunchMode().isDevOrTest()) {
+                database = mongoClient.getDatabase("PlanningPokerDev");
+            } else {
+                database = mongoClient.getDatabase("PlanningPoker");
+            }
+            MongoCollection<Document> collection = database.getCollection("Users");
+            
+            List<Document> userList = new ArrayList<>();
+            for (Document document : collection.find()) {
+                if (!"66446a0b97b346b20fd35b73".equals(document.get("role"))) {
+                    userList.add(document);
+                }
+            }
+            return Response.ok(userList).build();            
         } else {
-            database = mongoClient.getDatabase("PlanningPoker");
+            return Response.status(Response.Status.NOT_FOUND).entity("No user found").build();
         }
-        MongoCollection<Document> collection = database.getCollection("Users");
-        
-        List<Document> userList = new ArrayList<>();
-        for (Document document : collection.find()) {
-            userList.add(document);
-        }
-        return Response.ok(userList).build();
+
     }
 
     public Response findUser(String email) {

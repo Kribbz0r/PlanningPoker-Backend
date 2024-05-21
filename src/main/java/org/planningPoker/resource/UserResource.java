@@ -1,6 +1,5 @@
 package org.planningPoker.resource;
 
-import org.eclipse.microprofile.openapi.annotations.headers.Header;
 import org.planningPoker.service.UserService;
 
 import jakarta.inject.Inject;
@@ -22,9 +21,9 @@ public class UserResource {
     UserService userService;
 
     @GET
-    @Path("/test")
-    public Response testGet() {
-        return userService.testGet();
+    @Path("/all-users")
+    public Response getAllUsers(@HeaderParam("Authorization") String jwtToken) {
+        return userService.getAllUsers(jwtToken);
     }
 
     @GET

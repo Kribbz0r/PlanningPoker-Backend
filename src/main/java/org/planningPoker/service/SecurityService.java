@@ -154,12 +154,9 @@ public class SecurityService {
     public Jws<io.jsonwebtoken.Claims> verifyJwt(String jwtToken) throws Exception {
 
         PublicKey publicKey = loadPublicKey();
-        String issuer = appConfig.jwtIssuer();
-        System.out.println(publicKey + issuer);
-        try {
-            Jws<io.jsonwebtoken.Claims> claim = Jwts.parser().requireIssuer(issuer).verifyWith(publicKey).build().parseSignedClaims(jwtToken);
-            System.out.println(claim.getPayload().get("groups"));
 
+        String issuer = appConfig.jwtIssuer();
+        try {
             return Jwts.parser().requireIssuer(issuer).verifyWith(publicKey).build().parseSignedClaims(jwtToken);
         } catch (SignatureException e) {
             Exception exception = new Exception("JWT Signature not valid");
@@ -193,7 +190,6 @@ public class SecurityService {
             publicKey = System.getenv("PUBLIC_KEY");
 
         }
-        System.out.println("Key: " + publicKey);
 
         publicKey = publicKey.replace("-----BEGIN PUBLIC KEY-----", "")
                 .replace("-----END PUBLIC KEY-----", "")

@@ -1,5 +1,7 @@
 package org.planningPoker.resource;
 
+import org.eclipse.microprofile.openapi.annotations.parameters.RequestBody;
+import org.planningPoker.model.Task;
 import org.planningPoker.service.TaskService;
 
 import jakarta.inject.Inject;
@@ -39,4 +41,10 @@ public class TaskResource {
         return taskService.createNewTask(jwtToken, projectName, taskName);
     }
     
+    @PATCH
+    @Path("/edit-task")
+    public Response editTask(@HeaderParam("projectName") String projectName, @HeaderParam("Authorization") String jwtToken, @HeaderParam("userEmail") String userEmail, @RequestBody Task task) {
+        return taskService.editTask(projectName, jwtToken, userEmail, task);
+    }
+
 }
