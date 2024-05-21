@@ -44,5 +44,5 @@ nb-configuration.xml
 privateKey.pem
 publicKey.pem
 
-/target/
-target/*.jar
+target/*
+*.jar
