@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.bson.Document;
+import org.bson.types.ObjectId;
 
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoClient;
@@ -140,6 +141,10 @@ public class UserService {
         List<Document> taskList = new ArrayList<>();
         for (Document document : documents) {
             if (userClaim.getPayload().get("groups").toString().contains("seealltasks")) {
+                Object objectId = new ObjectId();
+                objectId = document.get("_id");
+                String idString = objectId.toString();
+                document.put("_id", idString);
                 taskList.add(document);
 
             } else if (!document.get("status").toString().equals("complete") && !document.get("status").toString().equals("needattention") && 
