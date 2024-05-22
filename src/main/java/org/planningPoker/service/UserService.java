@@ -149,6 +149,10 @@ public class UserService {
 
             } else if (!document.get("status").toString().equals("complete") && !document.get("status").toString().equals("needattention") && 
                 userClaim.getPayload().get("groups").toString().contains("viewactivetasks")) {
+                    Object objectId = new ObjectId();
+                    objectId = document.get("_id");
+                    String idString = objectId.toString();
+                    document.put("_id", idString);
                     taskList.add(document);
             } 
         }
