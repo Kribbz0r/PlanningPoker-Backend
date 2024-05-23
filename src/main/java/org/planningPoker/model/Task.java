@@ -16,9 +16,10 @@ public class Task {
     private List<Integer> suggestedTimes;
     private List<String> usersthathavevoted;
     private Boolean disapproved;
+    private List<String> usersthathaveapproved;
 
     public Task(String taskId, String task, String status, String estimatedTime, String finalTime, int votes,
-            int approvalvotes, List<Integer> suggestedTimes, List<String> usersthathavevoted, Boolean disapproved) {
+            int approvalvotes, List<Integer> suggestedTimes, List<String> usersthathavevoted, Boolean disapproved, List<String> usersthathaveapproved) {
         this.taskId = taskId;
         this.task = task;
         this.status = status;
@@ -29,6 +30,7 @@ public class Task {
         this.suggestedTimes = suggestedTimes;
         this.usersthathavevoted = usersthathavevoted;
         this.disapproved = disapproved;
+        this.usersthathaveapproved = usersthathaveapproved;
     }
 
     public Task() {}
@@ -111,6 +113,14 @@ public class Task {
 
     public void setDisapproved(Boolean disapproved) {
         this.disapproved = disapproved;
+    }
+
+    public List<String> getUsersthathaveapproved() {
+        return usersthathaveapproved;
+    }
+
+    public void setUsersthathaveapproved(List<String> usersthathaveapproved) {
+        this.usersthathaveapproved = usersthathaveapproved;
     }
 
     
