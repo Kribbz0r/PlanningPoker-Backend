@@ -78,7 +78,7 @@ public class TaskResource {
     }
 
     @PATCH
-    @Path("archive-collection") 
+    @Path("archive-project") 
     public Response archiveCollection(@HeaderParam("projectName") String projectName, @HeaderParam("Authorization") String jwtToken) {
         return taskService.archiveCollection(jwtToken, projectName);
     }
