@@ -4,9 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.bson.Document;
-import org.bson.types.ObjectId;
-
-import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
@@ -103,61 +100,6 @@ public class UserService {
         } else {
             return Response.status(Response.Status.NOT_FOUND).entity("No user found").build();
         }
-    }
-
-    public Response getUserTasks(String jwtToken, String projectName) {
-       
-        Jws<Claims> userClaim = null;
-
-        try {
-            userClaim = securityService.verifyJwt(jwtToken);
-        } catch (Exception e) {
-            return Response.status(Response.Status.UNAUTHORIZED).entity("You are not authorized to do this!").build();
-        }
-        if  (userClaim != null) {
-            try { 
-                List<Document> allTasks = getTasks(userClaim, projectName);
-                return Response.ok(allTasks).build();
-            } catch (Exception e) {
-                return Response.status(Response.Status.NOT_FOUND).entity(e.getMessage()).build();
-            }
-        } else {
-            return Response.status(Response.Status.UNAUTHORIZED).entity("You are not authorized to do this!").build();
-        }
-        
-    }
-
-    public List<Document> getTasks(Jws<Claims> userClaim, String projectName) {
-
-        MongoDatabase database;
-        if (ProfileManager.getLaunchMode().isDevOrTest()) {
-            database = mongoClient.getDatabase("PlanningPokerDev");
-        } else {
-            database = mongoClient.getDatabase("PlanningPoker");
-
-        }
-        MongoCollection<Document> collection = database.getCollection(projectName);
-        FindIterable<Document> documents = collection.find();
-        List<Document> taskList = new ArrayList<>();
-        for (Document document : documents) {
-            if (userClaim.getPayload().get("groups").toString().contains("seealltasks")) {
-                Object objectId = new ObjectId();
-                objectId = document.get("_id");
-                String idString = objectId.toString();
-                document.put("_id", idString);
-                taskList.add(document);
-
-            } else if (!document.get("status").toString().equals("complete") && !document.get("status").toString().equals("needattention") && 
-                userClaim.getPayload().get("groups").toString().contains("viewactivetasks")) {
-                    Object objectId = new ObjectId();
-                    objectId = document.get("_id");
-                    String idString = objectId.toString();
-                    document.put("_id", idString);
-                    taskList.add(document);
-            } 
-        }
-
-        return taskList;
     }
 
     public Response changeUserAccess(String jwtToken, String userEmail) {
