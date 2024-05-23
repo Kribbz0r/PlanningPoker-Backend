@@ -200,4 +200,34 @@ public class UserService {
 
     }
 
+    public Response getNumberWithAccess(String jwtToken) {
+
+        Jws<Claims> userClaim = null;
+
+        MongoDatabase database;
+        if (ProfileManager.getLaunchMode().isDevOrTest()) {
+            database = mongoClient.getDatabase("PlanningPokerDev");
+        } else {
+            database = mongoClient.getDatabase("PlanningPoker");
+        }
+        MongoCollection<Document> collection = database.getCollection("Users");
+        
+        try {
+            userClaim = securityService.verifyJwt(jwtToken);
+        } catch (Exception e) {
+            return Response.status(Response.Status.UNAUTHORIZED).entity("You are not authorized to do this!").build();
+        }
+        if  (userClaim.getPayload().get("groups").toString().contains("accesscount")) {
+            try {
+                long count = collection.countDocuments(new Document("authorized", 1).append("role", "66446bd997b346b20fd35b74"));
+                return Response.ok(count).build();
+            } catch (Exception e) {
+                return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();
+            }
+        } else {
+            return Response.status(Response.Status.UNAUTHORIZED).entity("You are not authorized to do this!").build();
+        }
+        
+    }
+
 }
