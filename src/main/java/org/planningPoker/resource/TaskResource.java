@@ -77,4 +77,10 @@ public class TaskResource {
         return taskService.editTask(projectName, jwtToken, userEmail, task);
     }
 
+    @PATCH
+    @Path("archive-collection") 
+    public Response archiveCollection(@HeaderParam("projectName") String projectName, @HeaderParam("Authorization") String jwtToken) {
+        return taskService.archiveCollection(jwtToken, projectName);
+    }
+
 }
