@@ -44,5 +44,11 @@ public class UserResource {
         return userService.changeUserAccess(jwtToken, userEmail);
     }
 
+    @GET
+    @Path("/number-with-access")
+    public Response getNumberWithAccess(@HeaderParam("Authorization") String jwtToken) {
+        return userService.getNumberWithAccess(jwtToken);
+    }
+
 
 }
