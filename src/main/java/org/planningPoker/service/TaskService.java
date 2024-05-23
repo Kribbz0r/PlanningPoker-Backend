@@ -121,6 +121,7 @@ public class TaskService {
                 newDocument.append("suggestedTimes", new ArrayList<>());
                 newDocument.append("usersthathavevoted", new ArrayList<>());
                 newDocument.append("disapproved", false);
+                newDocument.append("usersthathaveapproved", new ArrayList<>());
 
                 MongoDatabase database;
                 if (ProfileManager.getLaunchMode().isDevOrTest()) {
