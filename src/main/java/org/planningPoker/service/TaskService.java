@@ -166,11 +166,14 @@ public class TaskService {
                 }
 
                 String newStatus = "undervote";
+                Response response = userService.getNumberWithAccess(jwtToken);
+                int numberWithAccess = Integer.valueOf(response.getEntity().toString());
+
                 if(task.getFinalTime() != null) {
                     newStatus = "complete";
                 } else if (task.getEstimatedTime() != null && task.getFinalTime() == null) {
                     newStatus = "inprogress";
-                } else if (task.getDisapproved() == true) {
+                } else if (task.getDisapproved() == true && task.getUsersthathaveapproved().size() == numberWithAccess) {
                     newStatus = "needattention";
                 }
 
@@ -179,6 +182,12 @@ public class TaskService {
                     currentUsers.add(userEmail);
                     task.setUsersthathavevoted(currentUsers);
                 }
+                List<String> currentApproved = task.getUsersthathaveapproved();
+                if (!currentApproved.contains(userEmail)) {
+                    currentApproved.add(userEmail);
+                    task.setUsersthathaveapproved(currentApproved);
+                }
+                
 
                 Document updateDocument = new Document();
                 updateDocument.append("status", newStatus);
@@ -189,6 +198,7 @@ public class TaskService {
                 updateDocument.append("suggestedTimes", task.getSuggestedTimes());
                 updateDocument.append("usersthathavevoted", task.getUsersthathavevoted());
                 updateDocument.append("disapproved", task.getDisapproved());
+                updateDocument.append("userthathaveapproved", task.getUsersthathaveapproved());
 
                 collection.updateOne(query, new Document("$set", updateDocument));
 
