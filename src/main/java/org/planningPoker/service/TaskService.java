@@ -200,7 +200,7 @@ public class TaskService {
                 updateDocument.append("suggestedTimes", task.getSuggestedTimes());
                 updateDocument.append("usersthathavevoted", task.getUsersthathavevoted());
                 updateDocument.append("disapproved", task.getDisapproved());
-                updateDocument.append("userthathaveapproved", task.getUsersthathaveapproved());
+                updateDocument.append("usersthathaveapproved", task.getUsersthathaveapproved());
 
                 collection.updateOne(query, new Document("$set", updateDocument));
 
