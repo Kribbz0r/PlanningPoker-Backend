@@ -179,16 +179,16 @@ public class TaskService {
                     newStatus = "needattention";
                 }
 
-                List<String> currentUsers = task.getUsersthathavevoted();
-                if (!currentUsers.contains(userEmail)) {
-                    currentUsers.add(userEmail);
-                    task.setUsersthathavevoted(currentUsers);
-                }
-                List<String> currentApproved = task.getUsersthathaveapproved();
-                if (!currentApproved.contains(userEmail)) {
-                    currentApproved.add(userEmail);
-                    task.setUsersthathaveapproved(currentApproved);
-                }
+                // List<String> currentApproved = task.getUsersthathaveapproved();
+                // if (currentUsers.contains(userEmail) && !currentApproved.contains(userEmail)) {
+                //     currentApproved.add(userEmail);
+                //     task.setUsersthathaveapproved(currentApproved);
+                // }
+                // List<String> currentUsers = task.getUsersthathavevoted();
+                // if (!currentUsers.contains(userEmail)) {
+                //     currentUsers.add(userEmail);
+                //     task.setUsersthathavevoted(currentUsers);
+                // }
                 
 
                 Document updateDocument = new Document();
