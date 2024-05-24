@@ -64,7 +64,7 @@ public class SecurityService {
                     userDocument.get("role").toString(), Integer.parseInt(userDocument.get("authorized").toString()),
                     userDocument.get("password").toString(), userDocument.get("name").toString());
         } else if (userDocument.get("authorized").equals(0)){
-            return Response.status(Response.Status.UNAUTHORIZED).entity("You do not have permission to use the planner.").build();
+            return Response.status(Response.Status.FORBIDDEN).entity("You do not have permission to use the planner.").build();
         } else {
             return Response.status(Response.Status.UNAUTHORIZED).entity("Incorrect email or password").build();
         }
@@ -114,7 +114,6 @@ public class SecurityService {
             KeyFactory keyFactory = KeyFactory.getInstance("RSA");
             return keyFactory.generatePrivate(keySpec);
         } catch (Exception e) {
-            System.out.println(e.getMessage());
             e.printStackTrace();
             return null;
         }
