@@ -8,6 +8,7 @@ import org.bson.types.ObjectId;
 import org.planningPoker.config.AppConfig;
 import org.planningPoker.model.Task;
 
+import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
@@ -163,7 +164,7 @@ public class TaskService {
                 Document query = new Document("_id", taskDocumentId);
                 Document document = collection.find(query).first();
                 if (document == null) {
-                    return Response.status(Response.Status.NOT_FOUND).entity("Task not found").build();
+                    return Response.status(Response.Status.NO_CONTENT).entity("Task not found").build();
                 }
 
                 String newStatus = "undervote";
@@ -210,5 +211,87 @@ public class TaskService {
         } catch (Exception e) {
             return Response.status(Response.Status.UNAUTHORIZED).entity("You are NOT authorized to do this!").build();
         }
+    }
+
+    public Response getAllTasks(String jwtToken, String projectName) {
+       
+        Jws<Claims> userClaim = null;
+
+        try {
+            userClaim = securityService.verifyJwt(jwtToken);
+        } catch (Exception e) {
+            return Response.status(Response.Status.UNAUTHORIZED).entity("You are not authorized to do this!").build();
+        }
+        if  (userClaim != null) {
+            try { 
+                List<Document> allTasks = getTasks(userClaim, projectName);
+                return Response.ok(allTasks).build();
+            } catch (Exception e) {
+                return Response.status(Response.Status.NOT_FOUND).entity(e.getMessage()).build();
+            }
+        } else {
+            return Response.status(Response.Status.UNAUTHORIZED).entity("You are not authorized to do this!").build();
+        }
+        
+    }
+
+    public List<Document> getTasks(Jws<Claims> userClaim, String projectName) {
+
+        MongoDatabase database;
+        if (ProfileManager.getLaunchMode().isDevOrTest()) {
+            database = mongoClient.getDatabase("PlanningPokerDev");
+        } else {
+            database = mongoClient.getDatabase("PlanningPoker");
+
+        }
+        MongoCollection<Document> collection = database.getCollection(projectName);
+        FindIterable<Document> documents = collection.find();
+        List<Document> taskList = new ArrayList<>();
+        for (Document document : documents) {
+            if (userClaim.getPayload().get("groups").toString().contains("seealltasks")) {
+                Object objectId = new ObjectId();
+                objectId = document.get("_id");
+                String idString = objectId.toString();
+                document.put("_id", idString);
+                taskList.add(document);
+
+            } else if (!document.get("status").toString().equals("complete") && !document.get("status").toString().equals("needattention") && 
+                userClaim.getPayload().get("groups").toString().contains("viewactivetasks")) {
+                    Object objectId = new ObjectId();
+                    objectId = document.get("_id");
+                    String idString = objectId.toString();
+                    document.put("_id", idString);
+                    taskList.add(document);
+            } 
+        }
+
+        return taskList;
+    }
+
+    public Response archiveCollection(String jwtToken, String projectName) {
+        Jws<Claims> userClaim = null;
+
+        try {
+            userClaim = securityService.verifyJwt(jwtToken);
+
+            if (userClaim.getPayload().get("groups").toString().contains("archiveproject")) {
+                MongoDatabase database;
+                if (ProfileManager.getLaunchMode().isDevOrTest()) {
+                    database = mongoClient.getDatabase("PlanningPokerDev");
+                } else {
+                    database = mongoClient.getDatabase("PlanningPoker");
+                }
+
+                MongoCollection<Document> collection = database.getCollection("Projects");
+                collection.updateOne(new Document(), new Document("$pull", new Document("projects", projectName)));
+                return Response.ok().entity("Project Archived.").build();
+                
+            } else {
+                return Response.status(Response.Status.NOT_FOUND).entity("No user found").build();
+            }
+        } catch (Exception e) {
+            return Response.status(Response.Status.UNAUTHORIZED).entity("You are not authorized to do this!").build();
+        }
+
     }
 }
