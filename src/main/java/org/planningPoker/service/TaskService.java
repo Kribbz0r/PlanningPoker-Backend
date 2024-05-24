@@ -267,4 +267,31 @@ public class TaskService {
 
         return taskList;
     }
+
+    public Response archiveCollection(String jwtToken, String projectName) {
+        Jws<Claims> userClaim = null;
+
+        try {
+            userClaim = securityService.verifyJwt(jwtToken);
+
+            if (userClaim.getPayload().get("groups").toString().contains("archiveproject")) {
+                MongoDatabase database;
+                if (ProfileManager.getLaunchMode().isDevOrTest()) {
+                    database = mongoClient.getDatabase("PlanningPokerDev");
+                } else {
+                    database = mongoClient.getDatabase("PlanningPoker");
+                }
+
+                MongoCollection<Document> collection = database.getCollection("Projects");
+                collection.updateOne(new Document(), new Document("$pull", new Document("projects", projectName)));
+                return Response.ok().entity("Project Archived.").build();
+                
+            } else {
+                return Response.status(Response.Status.NOT_FOUND).entity("No user found").build();
+            }
+        } catch (Exception e) {
+            return Response.status(Response.Status.UNAUTHORIZED).entity("You are not authorized to do this!").build();
+        }
+
+    }
 }
