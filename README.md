@@ -11,6 +11,15 @@ Installation Back-end:
 Klona detta repo till din lokala maskin  ( https://github.com/Kribbz0r/PlanningPoker-Backend )
 Lägg .env-filen som du har fått av Grupp 1 i roten på projektet
 Navigera till roten i projektet
+För att utnytja dess environmental variables kör kommadot:
+```bash
+export MONGODB_CONNECTION_STRING_DEV=<enter connection string från .env filen här>
+```
+eller 
+
+```powershell
+$env:MONGODB_CONNECTION_STRING_DEV="<enter connection string från .env filen här>"
+
 Kör "./mvnw compile quarkus:dev" för att starta applikationen
 
 
