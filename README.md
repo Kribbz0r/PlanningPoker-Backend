@@ -12,8 +12,10 @@ Klona detta repo till din lokala maskin  ( https://github.com/Kribbz0r/PlanningP
 Lägg .env-filen som du har fått av Grupp 1 i roten på projektet
 Navigera till roten i projektet
 
-Kör ./mvnw compile
-
+Kör 
+```bash
+./mvnw compile
+```
 För att utnytja dess environmental variables kör kommadot:
 ```bash
 export MONGODB_CONNECTION_STRING_DEV=<enter connection string från .env filen här>
@@ -27,7 +29,11 @@ $env:MONGODB_CONNECTION_STRING_DEV="<enter connection string från .env filen h�
 ```
 i PowerShell
 
-Kör "./mvnw quarkus:dev" för att starta applikationen
+Kör 
+```bash
+./mvnw quarkus:dev
+```
+för att starta applikationen
 
 
 Installation Front-end:
