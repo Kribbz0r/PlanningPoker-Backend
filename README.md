@@ -15,11 +15,14 @@ För att utnytja dess environmental variables kör kommadot:
 ```bash
 export MONGODB_CONNECTION_STRING_DEV=<enter connection string från .env filen här>
 ```
+i Git Bash
+
 eller 
 
 ```powershell
 $env:MONGODB_CONNECTION_STRING_DEV="<enter connection string från .env filen här>"
 ```
+i PowerShell
 
 Kör "./mvnw compile quarkus:dev" för att starta applikationen
 
