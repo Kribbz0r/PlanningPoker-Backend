@@ -19,6 +19,7 @@ eller
 
 ```powershell
 $env:MONGODB_CONNECTION_STRING_DEV="<enter connection string från .env filen här>"
+```
 
 Kör "./mvnw compile quarkus:dev" för att starta applikationen
 
