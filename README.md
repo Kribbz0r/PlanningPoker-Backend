@@ -51,7 +51,7 @@ användarnamn: alice@example.com
 lösenord: 111111
 
 användarnamn: bob@example.com
-lösenord: 111111
+lösenord: 111111 (obehörig)
 
 användarnamn: john@example.com
 lösenord: 111111
